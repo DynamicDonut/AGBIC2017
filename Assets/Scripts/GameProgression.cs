@@ -35,6 +35,12 @@ public class GameProgression : MonoBehaviour {
 		if (SceneManager.GetActiveScene ().name == "VersusScreen") {
 			LevelText.text = "Level " + (currLevel + 1);
 			QuestionText.text = "Questions: " + gameLevels [currLevel].questionType;
+			if (Input.GetButtonUp ("Submit")) {
+				GetComponent<GameManger> ().questionDiff = gameLevels [currLevel].difficulty.ToString ();
+				GetComponent<GameManger> ().categoryNum = gameLevels [currLevel].triviaDBNumber;
+				SceneManager.LoadScene (1);
+				//GetComponent<GameManger> ().FindQuestions (gameLevels [currLevel].triviaDBNumber, gameLevels [currLevel].difficulty.ToString ());
+			}
 		}
 	}
 }

@@ -4,4 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/VersusScreen.unity
+    guid: df686ca5c8ef14347ae57fd5a7966ce5
+  - enabled: 1
+    path: Assets/Scenes/QuestionScreen.unity
+    guid: fd284e43a15751742a09cb4711fd8964

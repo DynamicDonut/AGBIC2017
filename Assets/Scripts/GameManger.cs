@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using LitJson;
 using TMPro;
 
@@ -9,48 +10,63 @@ public class GameManger : MonoBehaviour {
     public JsonData questionData;
     public Transform myUI;
 	public List<int> questionList;
-	public int numofQuestions, maxQuota;
+	public int numofQuestions, categoryNum, maxQuota;
 	[Range(0, 10)] public int currQuota;
     WWW myWWW;
 	TextMeshProUGUI quotaText;
 
 	[System.NonSerialized] public bool foundQuestions, foundAnswers, questionAnswered;
 	[System.NonSerialized] public int currQuestion;
+	[System.NonSerialized] public string questionDiff;
 	public List<string> currAnswers;
 
     void Start() {
-		myWWW = new WWW("https://opentdb.com/api.php?amount=" + numofQuestions + "&category=15&difficulty=medium&type=multiple&encode=url3986");
-		quotaText = myUI.Find("QUOTA").GetComponent<TextMeshProUGUI> ();
-        foundQuestions = foundAnswers = false;
-		currQuestion = Random.Range(0, numofQuestions);
-		currQuota = 0;
+		if (SceneManager.GetActiveScene ().name == "QuestionScreen") {
+			myWWW = new WWW ("https://opentdb.com/api.php?amount=" + numofQuestions + "&category=" + categoryNum + "&difficulty=" + questionDiff + "&type=multiple&encode=url3986");
+			quotaText = myUI.Find ("QUOTA").GetComponent<TextMeshProUGUI> ();
+			foundQuestions = foundAnswers = false;
+			currQuestion = Random.Range (0, numofQuestions);
+			currQuota = 0;
+		}
     }
 
     void Update() {
-        if (myWWW.isDone && !foundQuestions) {
-            questionData = JsonMapper.ToObject(myWWW.text);
-            foundQuestions = true;
-			StartCoroutine (GenerateNewQuestion(0f));
-        }
+		if (SceneManager.GetActiveScene ().name == "QuestionScreen") {
+			if (myWWW.isDone && !foundQuestions) {
+				questionData = JsonMapper.ToObject (myWWW.text);
+				foundQuestions = true;
+				StartCoroutine (GenerateNewQuestion (0f));
+			}
 
-		if (questionAnswered){
-			HighlightRightAnswer ();
-			questionList.Add (currQuestion);
+			if (questionAnswered) {
+				HighlightRightAnswer ();
+				questionList.Add (currQuestion);
 
-			Start: 
+				Start: 
 				currQuestion = Random.Range (0, numofQuestions);
 				for (int i = 0; i < questionList.Count; i++) {
 					if (currQuestion == questionList [i])
 						goto Start;
-				} goto Outer;
+				}
+				goto Outer;
 
-			Outer: 
-				StartCoroutine (GenerateNewQuestion(2.0f));
+				Outer: 
+				StartCoroutine (GenerateNewQuestion (2.0f));
 				questionAnswered = false;
-		}
+			}
 
-		quotaText.text = currQuota + "/" + maxQuota;
+			quotaText.text = currQuota + "/" + maxQuota;
+		}
     }
+
+	public IEnumerator FindQuestions(int cNum, string qDiff){
+		myWWW = new WWW("https://opentdb.com/api.php?amount=" + numofQuestions + "&category=" + cNum + "&difficulty=" + qDiff + "&type=multiple&encode=url3986");
+		quotaText = myUI.Find("QUOTA").GetComponent<TextMeshProUGUI> ();
+		foundQuestions = foundAnswers = false;
+		currQuestion = Random.Range(0, numofQuestions);
+		currQuota = 0;
+		yield break;
+	}
 
 	IEnumerator GenerateNewQuestion(float waitTime){
 		yield return new WaitForSeconds (waitTime);
