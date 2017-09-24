@@ -9,43 +9,47 @@ public class GameManger : MonoBehaviour {
     public JsonData questionData;
     public Transform myUI;
 	public List<int> questionList;
-	public int currQuestion, numofQuestions;
-	public List<string> currAnswers;
-    public bool foundQuestions, foundAnswers, questionAnswered;
+	public int numofQuestions, maxQuota;
+	[Range(0, 10)] public int currQuota;
     WWW myWWW;
+	TextMeshProUGUI quotaText;
 
-    // Use this for initialization
+	[System.NonSerialized] public bool foundQuestions, foundAnswers, questionAnswered;
+	[System.NonSerialized] public int currQuestion;
+	public List<string> currAnswers;
+
     void Start() {
 		myWWW = new WWW("https://opentdb.com/api.php?amount=" + numofQuestions + "&category=15&difficulty=medium&type=multiple&encode=url3986");
+		quotaText = myUI.Find("QUOTA").GetComponent<TextMeshProUGUI> ();
         foundQuestions = foundAnswers = false;
 		currQuestion = Random.Range(0, numofQuestions);
-		questionList.Add (currQuestion);
+		currQuota = 0;
     }
 
-    // Update is called once per frame
     void Update() {
         if (myWWW.isDone && !foundQuestions) {
             questionData = JsonMapper.ToObject(myWWW.text);
-//            for (int i = 0; i < questionData["results"].Count; i++) {
-//                Debug.Log(WWW.UnEscapeURL(questionData["results"][i]["question"].ToString()));
-//            }
             foundQuestions = true;
 			StartCoroutine (GenerateNewQuestion(0f));
         }
 
 		if (questionAnswered){
 			HighlightRightAnswer ();
-			currQuestion = Random.Range (0, numofQuestions);
-			for (int i = 0; i < questionList.Count; i++) {
-				if (currQuestion == questionList [i]) {
-					currQuestion = Random.Range (0, numofQuestions);
-				}
-			}
-			StartCoroutine (GenerateNewQuestion(2.0f));
-			questionAnswered = false;
+			questionList.Add (currQuestion);
+
+			Start: 
+				currQuestion = Random.Range (0, numofQuestions);
+				for (int i = 0; i < questionList.Count; i++) {
+					if (currQuestion == questionList [i])
+						goto Start;
+				} goto Outer;
+
+			Outer: 
+				StartCoroutine (GenerateNewQuestion(2.0f));
+				questionAnswered = false;
 		}
 
-		//Debug.Log (questionData ["results"] [currQuestion] ["correct_answer"].ToString ());
+		quotaText.text = currQuota + "/" + maxQuota;
     }
 
 	IEnumerator GenerateNewQuestion(float waitTime){
@@ -58,7 +62,6 @@ public class GameManger : MonoBehaviour {
 			myUI.Find ("Answer" + (i + 1)).GetComponent<AnswerCheck> ().amIRight = false;
 			myUI.Find ("Answer" + (i + 1)).GetComponent<AnswerCheck> ().CheckValidAnswer ();
 			myUI.Find ("Answer" + (i + 1)).GetComponent<Image> ().color = myUI.Find ("Answer" + (i + 1)).GetComponent<AnswerCheck> ().defaultColor;
-
 		}
 	}
 		
